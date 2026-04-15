@@ -17,6 +17,8 @@ const textInput = document.getElementById("text-input");
 const fontSelect = document.getElementById("font-select");
 const fontSizeInput = document.getElementById("font-size");
 const fontSizeValue = document.getElementById("font-size-value");
+const lineHeightInput = document.getElementById("line-height");
+const lineHeightValue = document.getElementById("line-height-value");
 const textColorInput = document.getElementById("text-color");
 const strokeColorInput = document.getElementById("stroke-color");
 const strokeWidthInput = document.getElementById("stroke-width");
@@ -217,6 +219,7 @@ function createDefaultLayer(x = canvas.width / 2, y = canvas.height / 2) {
     y,
     fontFamily: "Arial, sans-serif",
     fontSize: 48,
+    lineHeight: 1.2,
     textColor: "#ffffff",
     strokeEnabled: false,
     strokeColor: "#000000",
@@ -284,6 +287,15 @@ function syncControlsFromActiveLayer() {
     fontSelect.value = "Arial, sans-serif";
     fontSizeInput.value = 48;
     fontSizeValue.textContent = "48px";
+
+    if (lineHeightInput) {
+      lineHeightInput.value = 1.2;
+    }
+
+    if (lineHeightValue) {
+      lineHeightValue.textContent = "1.2";
+    }
+
     textColorInput.value = "#ffffff";
     strokeEnabledInput.checked = false;
     strokeColorInput.value = "#000000";
@@ -297,6 +309,15 @@ function syncControlsFromActiveLayer() {
   fontSelect.value = activeLayer.fontFamily;
   fontSizeInput.value = activeLayer.fontSize;
   fontSizeValue.textContent = `${activeLayer.fontSize}px`;
+
+  if (lineHeightInput) {
+    lineHeightInput.value = activeLayer.lineHeight ?? 1.2;
+  }
+
+  if (lineHeightValue) {
+    lineHeightValue.textContent = `${activeLayer.lineHeight ?? 1.2}`;
+  }
+
   textColorInput.value = activeLayer.textColor;
   strokeEnabledInput.checked = activeLayer.strokeEnabled ?? false;
   strokeColorInput.value = activeLayer.strokeColor;
@@ -322,6 +343,7 @@ async function updateActiveLayerFromControls() {
   activeLayer.text = textInput.value;
   activeLayer.fontFamily = fontSelect.value;
   activeLayer.fontSize = Number(fontSizeInput.value);
+  activeLayer.lineHeight = Number(lineHeightInput?.value || 1.2);
   activeLayer.textColor = textColorInput.value;
   activeLayer.strokeEnabled = strokeEnabledInput.checked;
   activeLayer.strokeColor = strokeColorInput.value;
@@ -429,7 +451,7 @@ function getLayerTextLines(layer) {
 
 function getLayerMetrics(targetCtx, layer) {
   const lines = getLayerTextLines(layer);
-  const lineHeight = layer.fontSize * 1.2;
+  const lineHeight = layer.fontSize * (layer.lineHeight || 1.2);
 
   targetCtx.save();
   targetCtx.font = `${layer.fontSize}px ${layer.fontFamily}`;
@@ -833,6 +855,15 @@ function resetEditor() {
   fontSelect.value = "Arial, sans-serif";
   fontSizeInput.value = 48;
   fontSizeValue.textContent = "48px";
+
+  if (lineHeightInput) {
+    lineHeightInput.value = 1.2;
+  }
+
+  if (lineHeightValue) {
+    lineHeightValue.textContent = "1.2";
+  }
+
   textColorInput.value = "#ffffff";
   strokeEnabledInput.checked = false;
   strokeColorInput.value = "#000000";
@@ -1136,6 +1167,13 @@ fontSizeInput.addEventListener("input", () => {
   fontSizeValue.textContent = `${fontSizeInput.value}px`;
   updateActiveLayerFromControls();
 });
+
+if (lineHeightInput) {
+  lineHeightInput.addEventListener("input", () => {
+    lineHeightValue.textContent = lineHeightInput.value;
+    updateActiveLayerFromControls();
+  });
+}
 
 textColorInput.addEventListener("input", () => {
   updateActiveLayerFromControls();
