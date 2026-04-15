@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Image Overlay Editor</title>
+    <meta
+      name="description"
+      content="Upload an image or generate a gradient, place text and overlay image, then download the result."
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Image Overlay Editor</h1>
+
+      <div id="instructions">
+        <details>
+          <summary>How To Use</summary>
+            <ul id="instructions-list">
+              <li>Choose a background source: Upload Image or Generate Gradient.</li>
+              <li>If you use Upload Image, select your background image from your device.</li>
+              <li>If you use Generate Gradient, create a gradient background and optionally add an overlay image.</li>
+              <li>Click a text block to select it, drag it to move, and double click it to edit.</li>
+              <li>Use Add Layer to create multiple text layers and switch between them from the list.</li>
+              <li>Enable Stroke if you want outline styling for text and overlay image.</li>
+              <li>You can drag the overlay image and resize it from the bottom-right corner.</li>
+              <li>Set custom export width and height before downloading if needed.</li>
+              <li>Download saves the final image and also adds it to Saved Versions below.</li>
+            </ul>
+        </details>
+      </div>
+    </header>
+
+    <main>
+      <section id="editor-section">
+        <div class="controls-panel">
+          <div class="control-group">
+            <label for="background-source">Background Source</label>
+            <select id="background-source">
+              <option value="upload">Upload Image</option>
+              <option value="gradient">Generate Gradient</option>
+            </select>
+          </div>
+
+          <div id="upload-background-controls">
+            <div class="control-group">
+              <label for="image-upload">Background Image</label>
+              <label for="image-upload" class="inline-upload-btn">Choose Image</label>
+              <input type="file" id="image-upload" accept="image/*" hidden />
+            </div>
+          </div>
+
+          <div id="gradient-background-controls" class="hidden">
+            <div class="control-group">
+              <label>Gradient Background</label>
+              <button id="generate-gradient-btn" type="button" class="mini-btn purple-btn">
+                Generate Gradient
+              </button>
+            </div>
+
+            <div class="control-group">
+              <label for="overlay-image-upload">Overlay Image</label>
+              <label for="overlay-image-upload" class="inline-upload-btn">Choose Overlay</label>
+              <input type="file" id="overlay-image-upload" accept="image/*" hidden />
+            </div>
+
+            <div class="control-group">
+              <button id="remove-overlay-btn" type="button" class="mini-btn red-btn">
+                Remove Overlay
+              </button>
+            </div>
+          </div>
+
+            <div class="export-size-row">
+            <div class="control-group export-field">
+                <label for="export-width">Export Width</label>
+                <input type="number" id="export-width" min="100" max="8000" value="1280" />
+            </div>
+
+            <div class="control-group export-field">
+                <label for="export-height">Export Height</label>
+                <input type="number" id="export-height" min="100" max="8000" value="720" />
+            </div>
+            </div>
+
+          <div id="custom-resolution-settings" class="hidden">
+            <div class="control-group">
+              <label for="export-width">Custom Width</label>
+              <input type="number" id="export-width" min="100" max="8000" value="1920" />
+            </div>
+
+            <div class="control-group">
+              <label for="export-height">Custom Height</label>
+              <input type="number" id="export-height" min="100" max="8000" value="1080" />
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="text-input">Text</label>
+            <input type="text" id="text-input" placeholder="Enter your text" />
+          </div>
+
+          <div class="control-group">
+            <label for="font-select">Font</label>
+            <select id="font-select">
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="'Montserrat', sans-serif">Montserrat</option>
+              <option value="'Nunito', sans-serif">Nunito</option>
+              <option value="'OpenSans', sans-serif">OpenSans</option>
+              <option value="'Poppins', sans-serif">Poppins</option>
+              <option value="'PTSans', sans-serif">PTSans</option>
+              <option value="'Roboto', sans-serif">Roboto</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="font-size">Font Size</label>
+            <input type="range" id="font-size" min="16" max="180" value="48" />
+            <span id="font-size-value">48px</span>
+          </div>
+
+          <div class="control-group">
+            <label for="text-color">Text Color</label>
+            <input type="color" id="text-color" value="#ffffff" />
+          </div>
+
+          <div class="control-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="stroke-enabled" />
+              Enable Stroke
+            </label>
+          </div>
+
+          <div id="stroke-settings" class="hidden">
+            <div class="control-group">
+              <label for="stroke-color">Stroke Color</label>
+              <input type="color" id="stroke-color" value="#000000" />
+            </div>
+
+            <div class="control-group">
+              <label for="stroke-width">Stroke Width</label>
+              <input type="range" id="stroke-width" min="1" max="12" value="2" />
+              <span id="stroke-width-value">2px</span>
+            </div>
+          </div>
+
+          <div class="layer-panel">
+            <div class="layer-header">
+              <h3>Text Layers</h3>
+            </div>
+
+            <div class="layer-buttons">
+              <button id="add-layer-btn" type="button" class="mini-btn blue-btn">Add Layer</button>
+              <button id="delete-layer-btn" type="button" class="mini-btn red-btn">Delete Layer</button>
+            </div>
+
+            <div id="layers-list"></div>
+          </div>
+        </div>
+
+        <div class="preview-panel">
+          <div class="canvas-wrapper">
+            <canvas id="editor-canvas" width="1280" height="720"></canvas>
+            <div id="empty-state">Choose source to start</div>
+          </div>
+
+          <div class="buttons-row">
+            <button id="download-btn" class="action-btn download-btn" type="button">
+              Download
+            </button>
+
+            <button id="reset-btn" class="action-btn reset-btn" type="button">
+              Reset
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="saved-section">
+        <h2>Saved Versions</h2>
+        <div id="saved-wrapper"></div>
+      </section>
+    </main>
+
+    <script src="main.js"></script>
+  </body>
+</html>

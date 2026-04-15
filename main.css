@@ -1,0 +1,370 @@
+* {
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: "Montserrat";
+  src: url("fonts/Montserrat-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Nunito";
+  src: url("fonts/Nunito-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "OpenSans";
+  src: url("fonts/OpenSans-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("fonts/Poppins-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "PTSans";
+  src: url("fonts/PTSans-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Roboto";
+  src: url("fonts/Roboto-Regular.ttf") format("truetype");
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f7fb;
+  color: #111827;
+}
+
+header,
+main {
+  margin: 1rem;
+}
+
+header h1 {
+  margin-bottom: 0.5rem;
+}
+
+#instructions {
+  margin: 1rem 0;
+}
+
+#instructions-list {
+  margin-top: 0.5rem;
+}
+
+#editor-section {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.controls-panel,
+.preview-panel,
+#saved-section {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.08);
+}
+
+.control-group {
+  margin-bottom: 1rem;
+}
+
+.control-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.control-group input[type="text"],
+.control-group input[type="number"],
+.control-group select,
+.control-group input[type="range"],
+.control-group input[type="color"] {
+  width: 100%;
+}
+
+.control-group input[type="text"],
+.control-group input[type="number"],
+.control-group select {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: #fff;
+}
+
+.control-group span {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.92rem;
+  color: #4b5563;
+}
+
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  transform: scale(1.15);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.inline-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+  background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+  text-decoration: none;
+}
+
+.layer-panel {
+  margin-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1rem;
+}
+
+.layer-header h3 {
+  margin: 0 0 0.75rem 0;
+}
+
+.layer-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.mini-btn {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.blue-btn {
+  background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+}
+
+.red-btn {
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+}
+
+.purple-btn {
+  background: linear-gradient(180deg, #a855f7, #9333ea);
+}
+
+#layers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.layer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.75rem;
+  cursor: pointer;
+  background: #fff;
+}
+
+.layer-item.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.layer-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.layer-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.canvas-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+}
+
+#editor-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+  background: #dbe3ee;
+}
+
+#empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #6b7280;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.buttons-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 1rem 1.5rem;
+  min-width: 140px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: center;
+  transition: 0.25s ease;
+  text-decoration: none;
+}
+
+.download-btn {
+  background: linear-gradient(180deg, #a855f7, #9333ea);
+}
+
+.reset-btn {
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+}
+
+.action-btn:hover,
+.action-btn:focus,
+.mini-btn:hover,
+.mini-btn:focus,
+.inline-upload-btn:hover,
+.inline-upload-btn:focus {
+  transform: translateY(-1px);
+}
+
+#saved-section {
+  margin-top: 1rem;
+}
+
+#saved-wrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.saved-card {
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.saved-thumb {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+  background: #e5e7eb;
+}
+
+.saved-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+.saved-actions button {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.saved-download-btn {
+  background: linear-gradient(180deg, #a855f7, #9333ea);
+}
+
+.saved-delete-btn {
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+}
+
+@media (max-width: 1100px) {
+  #editor-section {
+    grid-template-columns: 1fr;
+  }
+
+  #saved-wrapper {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  #saved-wrapper {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  #saved-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .saved-actions,
+  .layer-buttons {
+    flex-direction: column;
+  }
+}
+.export-size-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+@media (max-width: 520px) {
+  .export-size-row {
+    flex-direction: column;
+  }
+}
+.export-field {
+  width: 100%;
+}
