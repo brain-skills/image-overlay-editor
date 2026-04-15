@@ -73,6 +73,41 @@ const colorPalettes = [
   ["#f72585", "#b5179e", "#4cc9f0", "#fefae0"]
 ];
 
+const loadedFonts = new Set();
+
+function getPrimaryFontFamily(fontValue) {
+  if (!fontValue) {
+    return "Arial";
+  }
+
+  return fontValue
+    .split(",")[0]
+    .trim()
+    .replace(/^['"]|['"]$/g, "");
+}
+
+async function ensureFontLoaded(fontValue, fontSize = 48) {
+  const family = getPrimaryFontFamily(fontValue);
+
+  if (!family || family.toLowerCase() === "arial") {
+    return;
+  }
+
+  const cacheKey = `${family}-${fontSize}`;
+
+  if (loadedFonts.has(cacheKey)) {
+    return;
+  }
+
+  try {
+    await document.fonts.load(`${fontSize}px "${family}"`);
+    await document.fonts.ready;
+    loadedFonts.add(cacheKey);
+  } catch (error) {
+    console.warn("Font load failed:", family, error);
+  }
+}
+
 function toggleStrokeSettingsVisibility() {
   if (strokeEnabledInput.checked) {
     strokeSettings.classList.remove("hidden");
@@ -207,6 +242,22 @@ function addNewLayer(x = canvas.width / 2, y = canvas.height / 2) {
   setActiveLayer(newLayer.id);
 }
 
+function ensureActiveLayerExists() {
+  if (activeLayerId) {
+    return getActiveLayer();
+  }
+
+  const newLayer = createDefaultLayer(canvas.width / 2, canvas.height / 2);
+  textLayers.push(newLayer);
+  activeLayerId = newLayer.id;
+
+  overlaySelected = false;
+  syncControlsFromActiveLayer();
+  redrawLayersList();
+
+  return newLayer;
+}
+
 function deleteActiveLayer() {
   if (!activeLayerId) {
     return;
@@ -254,12 +305,18 @@ function syncControlsFromActiveLayer() {
   toggleStrokeSettingsVisibility();
 }
 
-function updateActiveLayerFromControls() {
-  const activeLayer = getActiveLayer();
+async function updateActiveLayerFromControls() {
+  let activeLayer = getActiveLayer();
 
   if (!activeLayer) {
-    toggleStrokeSettingsVisibility();
-    return;
+    const hasTypedText = textInput.value.trim().length > 0;
+
+    if (!hasTypedText) {
+      toggleStrokeSettingsVisibility();
+      return;
+    }
+
+    activeLayer = ensureActiveLayerExists();
   }
 
   activeLayer.text = textInput.value;
@@ -271,6 +328,9 @@ function updateActiveLayerFromControls() {
   activeLayer.strokeWidth = Number(strokeWidthInput.value);
 
   toggleStrokeSettingsVisibility();
+
+  await ensureFontLoaded(activeLayer.fontFamily, activeLayer.fontSize);
+
   redrawLayersList();
   drawCanvas();
 }
@@ -292,7 +352,7 @@ function redrawLayersList() {
 
     const name = document.createElement("div");
     name.className = "layer-name";
-    name.textContent = layer.text.trim() || layer.name;
+    name.textContent = layer.text.trim().split("\n")[0] || layer.name;
 
     const meta = document.createElement("div");
     meta.className = "layer-meta";
@@ -362,8 +422,39 @@ function createDefaultOverlayRect(img) {
   };
 }
 
+function getLayerTextLines(layer) {
+  const rawText = layer.text && layer.text.length ? layer.text : "Text";
+  return rawText.split("\n");
+}
+
+function getLayerMetrics(targetCtx, layer) {
+  const lines = getLayerTextLines(layer);
+  const lineHeight = layer.fontSize * 1.2;
+
+  targetCtx.save();
+  targetCtx.font = `${layer.fontSize}px ${layer.fontFamily}`;
+
+  let maxWidth = 0;
+
+  lines.forEach((line) => {
+    const width = targetCtx.measureText(line || " ").width;
+    if (width > maxWidth) {
+      maxWidth = width;
+    }
+  });
+
+  targetCtx.restore();
+
+  return {
+    lines,
+    lineHeight,
+    width: maxWidth,
+    height: lines.length * lineHeight
+  };
+}
+
 function drawLayerToContext(targetCtx, layer, isActive = false) {
-  const text = layer.text || "Text";
+  const { lines, lineHeight, width, height } = getLayerMetrics(targetCtx, layer);
 
   targetCtx.save();
   targetCtx.font = `${layer.fontSize}px ${layer.fontFamily}`;
@@ -372,19 +463,22 @@ function drawLayerToContext(targetCtx, layer, isActive = false) {
   targetCtx.lineJoin = "round";
   targetCtx.miterLimit = 2;
 
-  if ((layer.strokeEnabled ?? false) && layer.strokeWidth > 0) {
-    targetCtx.lineWidth = layer.strokeWidth;
-    targetCtx.strokeStyle = layer.strokeColor;
-    targetCtx.strokeText(text, layer.x, layer.y);
-  }
+  lines.forEach((line, index) => {
+    const yOffset = (index - (lines.length - 1) / 2) * lineHeight;
+    const drawY = layer.y + yOffset;
+    const drawLine = line || " ";
 
-  targetCtx.fillStyle = layer.textColor;
-  targetCtx.fillText(text, layer.x, layer.y);
+    if ((layer.strokeEnabled ?? false) && layer.strokeWidth > 0) {
+      targetCtx.lineWidth = layer.strokeWidth;
+      targetCtx.strokeStyle = layer.strokeColor;
+      targetCtx.strokeText(drawLine, layer.x, drawY);
+    }
+
+    targetCtx.fillStyle = layer.textColor;
+    targetCtx.fillText(drawLine, layer.x, drawY);
+  });
 
   if (isActive) {
-    const metrics = targetCtx.measureText(text);
-    const width = metrics.width;
-    const height = layer.fontSize * 1.2;
     const padding = 12;
 
     targetCtx.save();
@@ -408,22 +502,14 @@ function drawLayer(layer, isActive = false) {
 }
 
 function getLayerBounds(layer) {
-  const text = layer.text || "Text";
-
-  ctx.save();
-  ctx.font = `${layer.fontSize}px ${layer.fontFamily}`;
-  const metrics = ctx.measureText(text);
-  ctx.restore();
-
-  const width = metrics.width;
-  const height = layer.fontSize * 1.2;
+  const metrics = getLayerMetrics(ctx, layer);
   const padding = 12;
 
   return {
-    x: layer.x - width / 2 - padding,
-    y: layer.y - height / 2 - padding,
-    width: width + padding * 2,
-    height: height + padding * 2
+    x: layer.x - metrics.width / 2 - padding,
+    y: layer.y - metrics.height / 2 - padding,
+    width: metrics.width + padding * 2,
+    height: metrics.height + padding * 2
   };
 }
 
@@ -911,7 +997,10 @@ canvas.addEventListener("dblclick", (event) => {
   if (clickedLayer) {
     setActiveLayer(clickedLayer.id);
     textInput.focus();
-    textInput.select();
+
+    if (typeof textInput.select === "function") {
+      textInput.select();
+    }
   }
 });
 
@@ -1039,8 +1128,8 @@ textInput.addEventListener("input", () => {
   updateActiveLayerFromControls();
 });
 
-fontSelect.addEventListener("change", () => {
-  updateActiveLayerFromControls();
+fontSelect.addEventListener("change", async () => {
+  await updateActiveLayerFromControls();
 });
 
 fontSizeInput.addEventListener("input", () => {
